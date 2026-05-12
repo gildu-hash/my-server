@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookmarks</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #222;
+      min-height: 100vh;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    /* ── Nav ── */
+    nav {
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      z-index: 10;
+    }
+
+    .nav-logo {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #111;
+      text-decoration: none;
+    }
+
+    #theme-toggle {
+      background: none;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 0.3rem 0.7rem;
+      cursor: pointer;
+      font-size: 1rem;
+      color: #555;
+      transition: background 0.15s;
+    }
+
+    #theme-toggle:hover { background: #f0f0f0; }
+
+    /* ── Layout ── */
+    main {
+      max-width: 680px;
+      margin: 3rem auto;
+      padding: 0 1.5rem;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+      margin-bottom: 0.4rem;
+    }
+
+    .subtitle {
+      color: #888;
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+    }
+
+    /* ── Form ── */
+    .form-card {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    input[type="text"],
+    input[type="url"] {
+      width: 100%;
+      padding: 0.6rem 0.85rem;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      color: #222;
+      background: #fafafa;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #111;
+      box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+      background: #fff;
+    }
+
+    input::placeholder { color: #bbb; }
+
+    .btn-add {
+      width: 100%;
+      padding: 0.65rem;
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-add:hover { background: #333; }
+    .btn-add:active { background: #000; }
+
+    .error {
+      font-size: 0.82rem;
+      color: #c0392b;
+      margin-top: 0.5rem;
+      min-height: 1.1rem;
+    }
+
+    /* ── Bookmark list ── */
+    .list-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .list-header h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #555;
+    }
+
+    .count-badge {
+      background: #f0f0f0;
+      color: #666;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.2rem 0.55rem;
+      border-radius: 99px;
+    }
+
+    #bookmark-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .bookmark-item {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 1rem 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      animation: slide-in 0.15s ease;
+    }
+
+    @keyframes slide-in {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .favicon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: #aaa;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .favicon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .bookmark-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .bookmark-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #111;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-decoration: none;
+      display: block;
+    }
+
+    .bookmark-title:hover { text-decoration: underline; }
+
+    .bookmark-url {
+      font-size: 0.8rem;
+      color: #aaa;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 0.1rem;
+    }
+
+    .btn-delete {
+      background: none;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      padding: 0.3rem 0.5rem;
+      cursor: pointer;
+      color: #ccc;
+      font-size: 1rem;
+      line-height: 1;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+      flex-shrink: 0;
+    }
+
+    .btn-delete:hover {
+      color: #c0392b;
+      border-color: #f5c6c6;
+      background: #fff5f5;
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #bbb;
+    }
+
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .empty-state p { font-size: 0.95rem; }
+
+    /* ── Dark mode ── */
+    body.dark { background: #111; color: #e8e8e8; }
+
+    body.dark nav {
+      background: #1a1a1a;
+      border-bottom-color: #2a2a2a;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+
+    body.dark .nav-logo { color: #f0f0f0; }
+
+    body.dark #theme-toggle {
+      border-color: #2a2a2a;
+      color: #aaa;
+    }
+
+    body.dark #theme-toggle:hover { background: #2a2a2a; }
+
+    body.dark .subtitle { color: #666; }
+
+    body.dark .form-card,
+    body.dark .bookmark-item {
+      background: #1a1a1a;
+      border-color: #2a2a2a;
+    }
+
+    body.dark label { color: #888; }
+
+    body.dark input[type="text"],
+    body.dark input[type="url"] {
+      background: #111;
+      border-color: #2a2a2a;
+      color: #e8e8e8;
+    }
+
+    body.dark input:focus {
+      border-color: #aaa;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.05);
+      background: #1a1a1a;
+    }
+
+    body.dark input::placeholder { color: #444; }
+
+    body.dark .btn-add { background: #e8e8e8; color: #111; }
+    body.dark .btn-add:hover { background: #fff; }
+
+    body.dark .list-header h2 { color: #666; }
+
+    body.dark .count-badge { background: #2a2a2a; color: #888; }
+
+    body.dark .favicon { background: #2a2a2a; }
+
+    body.dark .bookmark-title { color: #e8e8e8; }
+    body.dark .bookmark-url  { color: #555; }
+
+    body.dark .btn-delete { color: #444; }
+
+    body.dark .btn-delete:hover {
+      color: #e74c3c;
+      border-color: #4a2020;
+      background: #2a1a1a;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a class="nav-logo" href="/">MyServer</a>
+    <button id="theme-toggle">🌙</button>
+  </nav>
+
+  <main>
+    <h1>Bookmarks</h1>
+    <p class="subtitle">Save and organize your favorite links.</p>
+
+    <div class="form-card">
+      <div class="form-row">
+        <div>
+          <label for="input-title">Title</label>
+          <input type="text" id="input-title" placeholder="My favorite site" autocomplete="off">
+        </div>
+        <div>
+          <label for="input-url">URL</label>
+          <input type="url" id="input-url" placeholder="https://example.com" autocomplete="off">
+        </div>
+      </div>
+      <button class="btn-add" id="btn-add">Add Bookmark</button>
+      <p class="error" id="error-msg"></p>
+    </div>
+
+    <div class="list-header">
+      <h2>Saved</h2>
+      <span class="count-badge" id="count-badge">0</span>
+    </div>
+
+    <div id="bookmark-list"></div>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'bookmarks';
+
+    function load() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+      catch { return []; }
+    }
+
+    function save(bookmarks) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(bookmarks));
+    }
+
+    function getFaviconUrl(url) {
+      try {
+        const { origin } = new URL(url);
+        return `${origin}/favicon.ico`;
+      } catch { return null; }
+    }
+
+    function render() {
+      const bookmarks = load();
+      const list = document.getElementById('bookmark-list');
+      const badge = document.getElementById('count-badge');
+
+      badge.textContent = bookmarks.length;
+
+      if (bookmarks.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">🔖</div>
+            <p>No bookmarks yet. Add one above.</p>
+          </div>`;
+        return;
+      }
+
+      list.innerHTML = bookmarks.map((b, i) => {
+        const favicon = getFaviconUrl(b.url);
+        return `
+          <div class="bookmark-item" data-index="${i}">
+            <div class="favicon">
+              ${favicon
+                ? `<img src="${favicon}" alt="" onerror="this.parentElement.textContent='🔗'">`
+                : '🔗'}
+            </div>
+            <div class="bookmark-info">
+              <a class="bookmark-title" href="${b.url}" target="_blank" rel="noopener">${escapeHtml(b.title)}</a>
+              <div class="bookmark-url">${escapeHtml(b.url)}</div>
+            </div>
+            <button class="btn-delete" data-index="${i}" title="Delete">✕</button>
+          </div>`;
+      }).join('');
+
+      list.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', () => deleteBookmark(Number(btn.dataset.index)));
+      });
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function deleteBookmark(index) {
+      const bookmarks = load();
+      bookmarks.splice(index, 1);
+      save(bookmarks);
+      render();
+    }
+
+    document.getElementById('btn-add').addEventListener('click', () => {
+      const titleEl = document.getElementById('input-title');
+      const urlEl   = document.getElementById('input-url');
+      const errorEl = document.getElementById('error-msg');
+
+      const title = titleEl.value.trim();
+      const url   = urlEl.value.trim();
+
+      errorEl.textContent = '';
+
+      if (!title && !url) { errorEl.textContent = 'Please enter a title and URL.'; return; }
+      if (!title)         { errorEl.textContent = 'Please enter a title.'; return; }
+      if (!url)           { errorEl.textContent = 'Please enter a URL.'; return; }
+
+      let normalizedUrl = url;
+      if (!/^https?:\/\//i.test(url)) normalizedUrl = 'https://' + url;
+
+      const bookmarks = load();
+      bookmarks.unshift({ title, url: normalizedUrl, addedAt: Date.now() });
+      save(bookmarks);
+      titleEl.value = '';
+      urlEl.value = '';
+      render();
+    });
+
+    // Submit on Enter from either input
+    ['input-title', 'input-url'].forEach(id => {
+      document.getElementById(id).addEventListener('keydown', e => {
+        if (e.key === 'Enter') document.getElementById('btn-add').click();
+      });
+    });
+
+    // Dark mode
+    const toggle = document.getElementById('theme-toggle');
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark');
+      toggle.textContent = '☀️';
+    }
+    toggle.addEventListener('click', () => {
+      const isDark = document.body.classList.toggle('dark');
+      toggle.textContent = isDark ? '☀️' : '🌙';
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+
+    render();
+  </script>
+</body>
+</html>
