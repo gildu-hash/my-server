@@ -1,15 +1,46 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>My Second Server</title>
-  <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 50px auto; }
-    h1 { color: #333; }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Server</title>
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <h1>Welcome to My Second Server</h1>
-  <p>This page is being served by Node.js and Express.</p>
-  <p>I built this myself.</p>
+
+  <nav>
+    <a class="nav-logo" href="/">MyServer</a>
+    <ul class="nav-links">
+      <li><a href="/" class="active">Home</a></li>
+      <li><a href="/about">About</a></li>
+      <li><a href="/contact">Contact</a></li>
+    </ul>
+    <button id="theme-toggle">🌙</button>
+  </nav>
+
+  <main>
+    <h1>Welcome</h1>
+    <p>This page is served by Node.js and Express. Use the navigation above to explore.</p>
+  </main>
+
+  <footer>
+    <p>© 2024 MyServer · <a href="https://github.com/myusername" target="_blank">GitHub</a></p>
+  </footer>
+
+  <script>
+    const toggle = document.getElementById('theme-toggle');
+    const body = document.body;
+
+    if (localStorage.getItem('theme') === 'dark') {
+      body.classList.add('dark');
+      toggle.textContent = '☀️';
+    }
+
+    toggle.addEventListener('click', () => {
+      const isDark = body.classList.toggle('dark');
+      toggle.textContent = isDark ? '☀️' : '🌙';
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+  </script>
 </body>
 </html>
