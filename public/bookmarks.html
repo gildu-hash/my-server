@@ -140,6 +140,9 @@
       min-height: 1.1rem;
     }
 
+    /* ── Search ── */
+    .search-bar { margin-bottom: 1rem; }
+
     /* ── Bookmark list ── */
     .list-header {
       display: flex;
@@ -351,6 +354,10 @@
       <p class="error" id="error-msg"></p>
     </div>
 
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="Search bookmarks by title…" autocomplete="off">
+    </div>
+
     <div class="list-header">
       <h2>Saved</h2>
       <span class="count-badge" id="count-badge">0</span>
@@ -379,13 +386,23 @@
     }
 
     function render() {
-      const bookmarks = load();
+      const allBookmarks = load();
+      const query = document.getElementById('search-input').value.trim().toLowerCase();
+
+      const visible = query
+        ? allBookmarks
+            .map((b, i) => ({ b, i }))
+            .filter(({ b }) => b.title.toLowerCase().includes(query))
+        : allBookmarks.map((b, i) => ({ b, i }));
+
       const list = document.getElementById('bookmark-list');
       const badge = document.getElementById('count-badge');
 
-      badge.textContent = bookmarks.length;
+      badge.textContent = query
+        ? `${visible.length} / ${allBookmarks.length}`
+        : allBookmarks.length;
 
-      if (bookmarks.length === 0) {
+      if (allBookmarks.length === 0) {
         list.innerHTML = `
           <div class="empty-state">
             <div class="icon">🔖</div>
@@ -394,7 +411,16 @@
         return;
       }
 
-      list.innerHTML = bookmarks.map((b, i) => {
+      if (visible.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">🔍</div>
+            <p>No bookmarks match “${escapeHtml(query)}”.</p>
+          </div>`;
+        return;
+      }
+
+      list.innerHTML = visible.map(({ b, i }) => {
         const favicon = getFaviconUrl(b.url);
         return `
           <div class="bookmark-item" data-index="${i}">
@@ -458,6 +484,9 @@
         if (e.key === 'Enter') document.getElementById('btn-add').click();
       });
     });
+
+    // Live filter as user types
+    document.getElementById('search-input').addEventListener('input', render);
 
     // Dark mode
     const toggle = document.getElementById('theme-toggle');
